@@ -3,7 +3,7 @@ type Token = { precedence?: number, LeftAssociative?: Boolean, func: (a: number,
 type Func = { func: (a: number, b?: number) => number, binary: boolean }
 export default class Calculator {
 	private readonly operatorsStack: string[] = []
-	private readonly output: string[] = []
+	private readonly output: number[] = []
 
 	private postfix: string[] = []
 	private result: number
@@ -21,7 +21,7 @@ export default class Calculator {
 			const token = tokens[i]
 			if (isNumber(token)) {
 				this.postfix.push(token)
-				this.output.push(token)
+				this.output.push(+token)
 			}
 			else if (this.isFunc(token)) {
 				this.operatorsStack.push(token)
@@ -55,6 +55,8 @@ export default class Calculator {
 				throw new Error('unexpected character.\nMaybe you forgot the space or mistype func name')
 			}
 		}
+		if (this.output.length > 1) throw new Error('too much parameter')
+		this.result = this.output.pop()
 
 	}
 
@@ -63,21 +65,26 @@ export default class Calculator {
 		const op = this.operatorsStack.pop()
 		if (this.isOperator(op)) {
 			const b = this.output.pop()
-			const a = (this.result === undefined) ? this.output.pop() : this.result
-			this.result = Calculator.operators[op].func(+a, +b)
+			const a = this.output.pop()
+			if (a === undefined || b === undefined) throw new Error('less parameter')
+			console.log(`${a} ${op} ${b}`)
+			this.output.push(Calculator.operators[op].func(+a, +b))
 		}
 		else if (this.isFunc(op)) {
 			if (Calculator.funcs[op].binary) {
 				const b = this.output.pop()
-				const a = (this.result === undefined) ? this.output.pop() : this.result
-				this.result = Calculator.funcs[op].func(+a, +b)
+				const a = this.output.pop()
+				if (a === undefined || b === undefined) throw new Error('less parameter')
+				console.log(`${op} ${a} ${b}`)
+				this.output.push(Calculator.funcs[op].func(+a, +b))
 			}
 			else {
-				const a = (this.result === undefined) ? this.output.pop() : this.result
-				this.result = Calculator.funcs[op].func(+a)
+				const a = this.output.pop()
+				if (a === undefined) throw new Error('less parameter')
+				console.log(`${op} ${a}`)
+				this.output.push(Calculator.funcs[op].func(+a))
 			}
 		}
-		console.log(this.result)
 		this.postfix.push(op)
 		return this.operatorsStack[this.operatorsStack.length - 1]
 	}
@@ -95,6 +102,10 @@ export default class Calculator {
 			'log': {
 				func: (a, b) => Math.log(b) / Math.log(a),
 				binary: true
+			},
+			'log10': {
+				func: a => Math.log10(a),
+				binary: false
 			},
 			'ln': {
 				func: a => Math.log(a),
