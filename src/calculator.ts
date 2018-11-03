@@ -11,13 +11,14 @@ export default class Calculator {
 	constructor(tokensOrStr: string[] | string) {
 		const tokens = [
 			'(',
-			...(tokensOrStr instanceof Array) ? (tokensOrStr as string[]) : (tokensOrStr as string).split(' '),
+			...(tokensOrStr instanceof Array) ?
+				(tokensOrStr as string[]) :
+				(tokensOrStr as string).trim().split(' ').filter(a => a !== ''),
 			')'
 		]
 
 
 		for (let i = 0, len = tokens.length; i < len; i++) {
-			console.log(this.operatorsStack, this.output, this.postfix)
 			const token = tokens[i]
 			if (isNumber(token)) {
 				this.postfix.push(token)
@@ -61,13 +62,11 @@ export default class Calculator {
 	}
 
 	calc() {
-		console.log(this.operatorsStack, this.output, this.postfix)
 		const op = this.operatorsStack.pop()
 		if (this.isOperator(op)) {
 			const b = this.output.pop()
 			const a = this.output.pop()
 			if (a === undefined || b === undefined) throw new Error('less parameter')
-			console.log(`${a} ${op} ${b}`)
 			this.output.push(Calculator.operators[op].func(+a, +b))
 		}
 		else if (this.isFunc(op)) {
@@ -75,13 +74,11 @@ export default class Calculator {
 				const b = this.output.pop()
 				const a = this.output.pop()
 				if (a === undefined || b === undefined) throw new Error('less parameter')
-				console.log(`${op} ${a} ${b}`)
 				this.output.push(Calculator.funcs[op].func(+a, +b))
 			}
 			else {
 				const a = this.output.pop()
 				if (a === undefined) throw new Error('less parameter')
-				console.log(`${op} ${a}`)
 				this.output.push(Calculator.funcs[op].func(+a))
 			}
 		}
@@ -113,6 +110,14 @@ export default class Calculator {
 			},
 			'sin': {
 				func: (a) => Math.sin(a),
+				binary: false
+			},
+			cos: {
+				func: a => Math.cos(a),
+				binary: false
+			},
+			tan: {
+				func: a => Math.tan(a),
 				binary: false
 			},
 			'nthrt': {
